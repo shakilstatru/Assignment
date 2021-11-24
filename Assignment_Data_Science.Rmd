@@ -1,0 +1,145 @@
+---
+title: "Assignment of COPD Incidence in Scotland"
+author: "by Fahmida Akter"
+output:
+  word_document: default
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Load Dataset
+
+```{r load-data}
+library(tidyverse)
+data <- read_csv("E:/DG Health Assignment/scotpho_data_extract_COPD.csv")
+
+```
+
+## Data Preperation
+
+```{r data-preperation}
+#Variable list
+names(data)
+#head of data
+head(data)
+#tail of data
+tail(data)
+#dimension of data (variable and observation)
+dim(data)
+#checking of missing data
+mis <- is.na(data)
+sum(mis)
+
+```
+
+
+## Data Visualization
+
+# Histogram
+
+```{r plot-hist, echo=TRUE}
+
+#Histogram
+library(RColorBrewer)
+hist(data$measure,breaks=3 ,col=brewer.pal(3,"Set2"),main="Histogram", xlab="COPD Incidence")
+
+```
+
+# Q-Q Plot 
+
+```{r Q-Q plot, echo=TRUE}
+#Q-Q plot 
+#install.packages("ggpubr")
+library(ggpubr)
+ggqqplot(data$measure)
+#Q-Q Plot 
+qqnorm(data$measure, pch =1, frame = TRUE, lwd=2)
+qqline(data$measure, col = "red", lwd = 3)
+```
+
+## Normality Test by Shapiro-Wilk normality test 
+
+```{r Shapiro-Wilk normality test}
+#Shapiro-Wilk normality test
+norm.test <- shapiro.test(data$measure)
+norm.test
+
+```
+
+From the output, the p-value < 0.05 implying that the distribution of the data are significantly different from normal distribution. In other words, we can not assume the normality.
+
+
+
+## Forest Plot 
+
+```{r forest-plot, echo=TRUE}
+label <- as.factor (c(2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 ,2013, 2014, 2015, 2016, 2017, 2018, 2003, 2004, 2005, 2006, 2007, 2008 ,2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018))
+incidence  <- data$measure
+lower <- data$lower_confidence_interval
+upper <- data$upper_confidence_interval
+
+#Data frame
+df <- data.frame(label, incidence, lower,upper)
+
+library(ggplot2)
+fp <- ggplot(data=df, aes(x=label, y=incidence, ymin=lower, ymax=upper, col="COPD Incidence")
+             ) +
+        geom_pointrange() + 
+        geom_hline(yintercept=180.3, lty=2, col="blue", lwd=1) +  # add a dotted line at x=1 after flip
+        coord_flip() +  # flip coordinates (puts labels on y axis)
+        xlab("Year") + ylab("Incidence (95% CI)") +
+        theme_bw()  # use a white background
+print(fp)
+ggsave(path="E:/DG Health Assignment/", "forest plot.png", width = 20, height = 20, units = "cm", dpi=300)
+```
+
+
+
+## Descriptive Statistical Analysis 
+
+```{r Descriptive statistics}
+#Descriptive statistics of Incidence
+summary(data$measure)
+#Box plot of incidence
+boxplot(data$measure,
+main = "Incidence of COPD in Scotland"
+, xlab = "Incidence  rate per 100,000", ylab = "Incidence",col = "orange", border = "brown", horizontal = FALSE, notch = FALSE)
+
+```
+
+## Linear Model for trend analysis
+
+```{r fit-model}
+fit <- lm(data$measure~data$year)
+summary(fit)
+```
+
+
+##  Trend Analysis graph 
+
+
+```{r Trend-analysis, echo=TRUE}
+#line plot
+p <- ggplot(data = data, aes(x = data$year, y = data$measure)) + 
+     geom_line(color = "#00AFBB", size = 1) +
+    scale_x_continuous("data$year", labels = as.character(data$year), breaks = data$year)
+ggsave(path="E:/DG Health Assignment/", "line plot1.png", width = 30, height = 20, units = "cm", dpi=300)
+print(p)
+
+# Polynomial Regression Fitting
+#p + stat_smooth(color = "#FC4E07", fill = "#FC4E07",
+# method = "loess") + xlab("Year") + ylab("COPD Incidence") 
+ #ggsave(path="E:/DG Health Assignment/", "line plot2.png", width = 30, height = 20, units = "cm", dpi=300)
+
+  # Linear Model Fitting
+p + stat_smooth(color = "#FC4E07", fill = "#FC4E07",
+  method = "lm") + xlab("Year") + ylab("COPD Incidence") 
+ggsave(path="E:/DG Health Assignment/", "line plot3.png", width = 30, height = 20, units = "cm", dpi=300)
+
+```
