@@ -106,6 +106,7 @@ ggsave(path="E:/DG Health Assignment/", "forest plot.png", width = 20, height = 
 ```{r Descriptive statistics}
 #Descriptive statistics of Incidence
 summary(data$measure)
+mean(data$measure)
 #Box plot of incidence
 boxplot(data$measure,
 main = "Incidence of COPD in Scotland"
